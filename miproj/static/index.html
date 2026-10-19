@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f1b30" />
+  <title>UniForecast v5.1 — аналитика нагрузки</title>
+  <meta name="uniforecast-build" content="UNIFORECAST_BUILD_5.1.0"/>
+  <link rel="stylesheet" href="/static/style.css?build=5.1.0" />
+  <script src="/static/app.js?build=5.1.0" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">U<span class="brand-spark">✦</span></span>
+        <div><strong>UniForecast</strong><small>University Intelligence</small></div>
+      </div>
+      <div class="nav-caption">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+      <nav class="main-nav" aria-label="Навигация">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">▦</span> Обзор нагрузки</button>
+        <button class="nav-item" data-view="forecast"><span class="nav-icon">⌁</span> Прогнозирование</button>
+        <button class="nav-item" data-view="model"><span class="nav-icon">◈</span> Модель и качество</button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-note">
+      </div>
+      <div class="sidebar-foot"><span class="status-dot"></span> Локальный сервер <span id="serverStatus">проверка…</span></div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="breadcrumbs">University Analytics <span>›</span> <strong id="breadcrumb">Обзор нагрузки</strong></div>
+        <div class="top-actions"><span class="data-badge">◉ Синтетические данные</span><span class="avatar">ML</span></div>
+      </header>
+
+      <div class="content" id="content">
+        <div class="page-head">
+          <div><p class="eyebrow">АНАЛИТИЧЕСКАЯ ПЛАТФОРМА</p><h1 id="pageTitle">Обзор нагрузки</h1><p class="page-subtitle" id="pageSubtitle">Мониторинг обращений и прогноз с помощью нейронной сети.</p></div>
+          <div class="filter-control"><label for="departmentSelect">Подразделение</label><select id="departmentSelect" aria-label="Выберите подразделение"><option>Загрузка…</option></select></div>
+        </div>
+        <div id="errorBanner" class="error-banner" hidden></div>
+
+        <section id="view-dashboard" class="view active">
+          <div class="info-strip"><span class="info-dot">i</span><span>Синтетические данные. История обращений до <strong id="historyEnd">—</strong>.</span></div>
+          <div class="stat-grid">
+            <article class="stat-card"><div class="stat-label">Обращений за 30 дней <span class="stat-symbol">↗</span></div><div class="stat-value" id="recentTotal">—</div><p class="stat-hint">По выбранному подразделению</p></article>
+            <article class="stat-card"><div class="stat-label">Среднее в день <span class="stat-symbol">⌁</span></div><div class="stat-value" id="recentAvg">—</div><p class="stat-hint">Последние 30 дней</p></article>
+            <article class="stat-card"><div class="stat-label">Ошибка MAE <span class="stat-symbol">◎</span></div><div class="stat-value" id="departmentMae">—</div><p class="stat-hint">На тестовой выборке</p></article>
+            <article class="stat-card highlight"><div class="stat-label">Изменение MAE против baseline <span class="stat-symbol">↗</span></div><div class="stat-value" id="departmentGain">—</div><p class="stat-hint">Положительное значение означает меньшую ошибку</p></article>
+          </div>
+          <div class="two-col">
+            <article class="panel panel-large"><div class="panel-heading"><div><h2>История обращений</h2><p>Динамика за последние 12 месяцев</p></div><span class="subtle-pill">365 дней</span></div><div class="legend"><span class="legend-item"><span class="legend-mark legend-daily"></span> По дням</span><span class="legend-item"><span class="legend-mark"></span> Среднее за 7 дней</span></div><div class="chart-wrap"><svg id="historyChart" viewBox="0 0 900 305" aria-label="График истории обращений" role="img"></svg><div id="chartTooltip" class="chart-tooltip" hidden></div></div></article>
+            <article class="panel panel-right"><div class="panel-heading"><div><h2 id="forecastShortTitle">Прогноз выбранного периода</h2><p id="forecastInterval">Для выбранного периода</p></div><span class="subtle-pill accent">MLP</span></div><div id="forecastBars" class="forecast-bars"></div><button id="openForecast" class="text-action">Подробнее о прогнозе <span>→</span></button></article>
+          </div>
+        </section>
+
+        <section id="view-forecast" class="view">
+          <div class="info-strip"><span class="info-dot">i</span><span>Выберите день, неделю или месяц. Фактические обращения доступны до <strong id="knownThrough">—</strong>.</span></div>
+          <div class="period-panel panel">
+            <div class="panel-heading"><div><h2>Период расчёта</h2><p>Укажите дату, неделю или месяц</p></div><span class="subtle-pill accent">MLP · PyTorch</span></div>
+            <form id="forecastForm" class="period-form">
+              <div class="period-modes" aria-label="Режим периода">
+                <button type="button" class="period-mode" data-period="day">День</button>
+                <button type="button" class="period-mode active" data-period="week">Неделя</button>
+                <button type="button" class="period-mode" data-period="month">Месяц</button>
+              </div>
+              <div class="period-input-row">
+                <label class="forecast-field" id="dateInputGroup" for="startDate"><span id="dateInputLabel">Дата внутри недели</span><input type="date" id="startDate" required /></label>
+                <label class="forecast-field" id="monthInputGroup" for="monthDate" hidden><span>Выберите месяц и год</span><input type="month" id="monthDate" /></label>
+                <div class="period-navigation"><button type="button" id="previousPeriod" title="Предыдущий период">←</button><button type="button" id="nextPeriod" title="Следующий период">→</button></div>
+                <button type="submit" id="forecastRun" class="primary-action">Показать прогноз →</button>
+              </div>
+            </form>
+          </div>
+          <div class="period-stat-grid">
+            <article class="stat-card"><div class="stat-label">Прогноз за выбранный период</div><div class="stat-value" id="periodPredicted">—</div><p class="stat-hint">Сумма прогнозов по дням</p></article>
+            <article class="stat-card"><div class="stat-label">Среднее в день</div><div class="stat-value" id="periodAverage">—</div><p class="stat-hint">Прогнозируемые обращения</p></article>
+            <article class="stat-card"><div class="stat-label">Фактически поступило</div><div class="stat-value" id="periodActual">—</div><p class="stat-hint" id="periodActualHint">Для исторических дней</p></article>
+            <article class="stat-card highlight"><div class="stat-label">Пиковый день</div><div class="stat-value period-peak" id="periodPeak">—</div><p class="stat-hint">Максимальная прогнозируемая нагрузка</p></article>
+          </div>
+          <div class="forecast-layout"><article class="panel"><div class="panel-heading"><div><h2>Прогноз нагрузки по дням</h2><p id="forecastWindow">—</p></div><span class="subtle-pill accent">Нейросеть</span></div><div id="forecastDetailBars" class="forecast-detail-bars"></div></article>
+          <article class="panel"><div class="panel-heading"><div><h2>Сравнение с фактическими данными</h2><p>В истории доступен факт, для будущих дней — только прогноз</p></div></div><div class="table-wrap"><table><thead><tr><th>Дата</th><th>День</th><th>Прогноз</th><th>Факт</th></tr></thead><tbody id="forecastTable"></tbody></table></div></article></div>
+        </section>
+
+        <section id="view-model" class="view">
+          <div class="info-strip"><span class="info-dot">i</span><span>Результаты относятся к синтетическому университетскому датасету. Они не подтверждают такую же точность на реальных обращениях.</span></div>
+          <div class="model-grid"><article class="panel"><div class="panel-heading"><div><h2>Архитектура нейросети</h2><p>Многослойный персептрон (MLP)</p></div><span class="subtle-pill">PyTorch</span></div><div class="architecture"><div class="layer"><strong>26</strong><span>Входные признаки</span></div><span class="layer-arrow">→</span><div class="layer"><strong>64</strong><span>Скрытый слой</span></div><span class="layer-arrow">→</span><div class="layer"><strong>32</strong><span>Скрытый слой</span></div><span class="layer-arrow">→</span><div class="layer output"><strong>1</strong><span>Прогноз</span></div></div><p class="model-help">Два скрытых слоя с ReLU, функция потерь MSE, оптимизатор Adam. Лучшие веса выбраны по валидационной MAE.</p><div class="model-meta"><div><span>Лучшая эпоха</span><strong id="bestEpoch">—</strong></div><div><span>Валидационная MAE</span><strong id="validationMae">—</strong></div><div><span>Признаков</span><strong id="featuresCount">—</strong></div></div></article><article class="panel"><div class="panel-heading"><div><h2>Итоговая оценка модели</h2><p>Отложенная тестовая выборка</p></div><span class="subtle-pill success">TEST</span></div><div class="comparison-list"><div><span>MAE нейросети</span><strong id="overallMae">—</strong></div><div><span>MAE базовой модели</span><strong id="overallBaseline">—</strong></div><div><span>RMSE нейросети</span><strong id="overallRmse">—</strong></div><div class="comparison-gain"><span>Изменение MAE</span><strong id="overallGain">—</strong></div></div><p class="table-foot">Baseline: средняя нагрузка по подразделению, месяцу и типу дня (будний / выходной) на обучающем периоде. На тесте календарная MLP немного уступает baseline. MAE измеряется в обращениях.</p></article></div>
+          <article class="panel methodology"><div class="panel-heading"><div><h2>Методология исследования</h2><p>Как подготовлены данные и проверено качество</p></div></div><div class="method-grid"><div><span class="method-num">01</span><h3>Синтетические заявки</h3><p>Смоделированы записи по пяти подразделениям с календарной сезонностью и случайными колебаниями.</p></div><div><span class="method-num">02</span><h3>Временные ряды</h3><p>Записи сгруппированы по дням. Пропущенные календарные дни заполнены нулём.</p></div><div><span class="method-num">03</span><h3>Обучение MLP</h3><p>Для прогноза используются календарные признаки (месяц, день недели, циклический день года) и код подразделения — без прошлых значений нагрузки.</p></div><div><span class="method-num">04</span><h3>Честная оценка</h3><p>Временное разбиение train/validation/test, нормализация только по train, сравнение с baseline.</p></div></div></article>
+        </section>
+        <footer class="footer">UniForecast v5.1 · Демонстрационная система прогнозирования университетской нагрузки · Данные синтетические</footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

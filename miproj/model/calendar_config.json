@@ -1,0 +1,51 @@
+{
+  "departments": [
+    "IT-поддержка",
+    "Бухгалтерия",
+    "Общежития",
+    "Приемная комиссия",
+    "Учебный отдел"
+  ],
+  "feature_columns": [
+    "month_1",
+    "month_2",
+    "month_3",
+    "month_4",
+    "month_5",
+    "month_6",
+    "month_7",
+    "month_8",
+    "month_9",
+    "month_10",
+    "month_11",
+    "month_12",
+    "weekday_0",
+    "weekday_1",
+    "weekday_2",
+    "weekday_3",
+    "weekday_4",
+    "weekday_5",
+    "weekday_6",
+    "department_0",
+    "department_1",
+    "department_2",
+    "department_3",
+    "department_4",
+    "day_sin",
+    "day_cos"
+  ],
+  "target_mean": 11.00735873850197,
+  "target_std": 8.781443132177014,
+  "architecture": [
+    26,
+    64,
+    32,
+    1
+  ],
+  "best_epoch": 6,
+  "validation_mae": 3.485105037689209,
+  "seasonal_baseline_validation_mae": 3.5071213245391846,
+  "train_end": "2025-09-30",
+  "val_end": "2026-03-31",
+  "training_note": "Calendar-only model: no request history, no future target leakage; assumes repeating seasonality"
+}
